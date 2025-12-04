@@ -69,20 +69,51 @@ def download_text8() -> Path:
 def download_simlex999() -> Path:
     """Download SimLex-999 dataset."""
     # SimLex-999 is available as a direct download
-    url = "https://fh295.github.io/SimLex-999.txt"
+    url = "https://fh295.github.io/SimLex-999.zip"
+    zip_path = CACHE_DIR / "SimLex-999.zip"
     dest_path = CACHE_DIR / "SimLex-999.txt"
     
     if dest_path.exists():
         print(f"SimLex-999 already exists: {dest_path}")
         return dest_path
     
-    download_file(url, dest_path, "SimLex-999")
+    download_file(url, zip_path, "SimLex-999")
+    
+    # Extract and find the actual file
+    print("Extracting SimLex-999...")
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        # Get list of files in zip
+        file_list = zip_ref.namelist()
+        # Extract all files
+        zip_ref.extractall(CACHE_DIR)
+        
+        # Find the extracted .txt file (could be SimLex-999.txt, SimLex999.txt, etc.)
+        extracted_file = None
+        for filename in file_list:
+            if filename.endswith('.txt'):
+                extracted_path = CACHE_DIR / filename
+                if extracted_path.exists():
+                    extracted_file = extracted_path
+                    break
+        
+        # If we found a file and it's not already the dest_path, rename it
+        if extracted_file and extracted_file != dest_path:
+            extracted_file.rename(dest_path)
+    
+    if not dest_path.exists():
+        raise FileNotFoundError(f"Could not find SimLex-999.txt after extraction. Files in zip: {file_list}")
+    
     return dest_path
 
 
 def download_wordsim353() -> Path:
     """Download WordSim-353 dataset."""
-    url = "http://www.cs.technion.ac.il/~gabr/resources/data/wordsim353/wordsim353.zip"
+    # Try alternative URLs if primary fails
+    urls = [
+        "http://www.cs.technion.ac.il/~gabr/resources/data/wordsim353/wordsim353.zip",
+        "https://www.cs.technion.ac.il/~gabr/resources/data/wordsim353/wordsim353.zip",
+        "https://raw.githubusercontent.com/PrincetonML/SIF/master/data/wordsim353.zip",
+    ]
     zip_path = CACHE_DIR / "wordsim353.zip"
     dest_dir = CACHE_DIR / "wordsim353"
     dest_path = dest_dir / "combined.csv"
@@ -91,14 +122,46 @@ def download_wordsim353() -> Path:
         print(f"WordSim-353 already exists: {dest_path}")
         return dest_path
     
-    # Download zip
-    download_file(url, zip_path, "WordSim-353")
+    # Try each URL until one works
+    last_error = None
+    for url in urls:
+        try:
+            print(f"Trying to download WordSim-353 from {url}...")
+            download_file(url, zip_path, "WordSim-353")
+            break
+        except Exception as e:
+            last_error = e
+            if zip_path.exists():
+                zip_path.unlink()  # Remove failed download
+            continue
+    else:
+        # All URLs failed
+        raise ConnectionError(
+            f"Failed to download WordSim-353 from all attempted URLs. "
+            f"Last error: {last_error}. "
+            f"Please check your internet connection or download manually."
+        )
     
     # Extract
     print("Extracting WordSim-353...")
     dest_dir.mkdir(exist_ok=True)
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        file_list = zip_ref.namelist()
         zip_ref.extractall(dest_dir)
+    
+    # Find the combined.csv file (might be in a subdirectory)
+    if not dest_path.exists():
+        # Search for combined.csv in the extracted directory
+        for file_path in dest_dir.rglob("combined.csv"):
+            if file_path != dest_path:
+                file_path.rename(dest_path)
+                break
+    
+    if not dest_path.exists():
+        raise FileNotFoundError(
+            f"Could not find combined.csv after extraction. "
+            f"Files in zip: {file_list}"
+        )
     
     return dest_path
 
