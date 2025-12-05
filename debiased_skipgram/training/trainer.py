@@ -37,9 +37,8 @@ class Trainer:
         # Move model to device
         self.model.to(self.device)
         
-        # Use SparseAdam for embeddings (more efficient for sparse updates)
-        # Note: SparseAdam doesn't support sparse=True in newer PyTorch versions
-        # So we'll use regular Adam with sparse embeddings
+        # Use Adam optimizer
+        # Note: Embeddings use sparse=False because Adam doesn't support sparse gradients
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=config.learning_rate

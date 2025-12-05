@@ -54,10 +54,38 @@ def load_wordsim353(path: str = None) -> List[Tuple[str, str, float]]:
     pairs = []
     with open(path, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
+        # Get the actual column names from the reader
+        fieldnames = reader.fieldnames
+        if fieldnames is None:
+            raise ValueError("Could not read column names from WordSim-353 file")
+        
+        # Find the score column (try different variations)
+        score_col = None
+        for col in fieldnames:
+            if 'human' in col.lower() and ('mean' in col.lower() or 'score' in col.lower()):
+                score_col = col
+                break
+        
+        if score_col is None:
+            raise ValueError(f"Could not find score column in WordSim-353. Available columns: {fieldnames}")
+        
+        # Find word columns (try different variations)
+        word1_col = None
+        word2_col = None
+        for col in fieldnames:
+            col_lower = col.lower()
+            if 'word' in col_lower and ('1' in col_lower or 'one' in col_lower):
+                word1_col = col
+            elif 'word' in col_lower and ('2' in col_lower or 'two' in col_lower):
+                word2_col = col
+        
+        if word1_col is None or word2_col is None:
+            raise ValueError(f"Could not find word columns in WordSim-353. Available columns: {fieldnames}")
+        
         for row in reader:
-            word1 = row['Word 1'].lower().strip()
-            word2 = row['Word 2'].lower().strip()
-            score = float(row['Human (mean)'])
+            word1 = row[word1_col].lower().strip()
+            word2 = row[word2_col].lower().strip()
+            score = float(row[score_col])
             pairs.append((word1, word2, score))
     
     return pairs

@@ -23,8 +23,9 @@ class SkipGram(nn.Module):
         self.embedding_dim = embedding_dim
         
         # Two embedding matrices: center (U) and context (V)
-        self.center_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=True)
-        self.context_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=True)
+        # Note: sparse=False because Adam optimizer doesn't support sparse gradients
+        self.center_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=False)
+        self.context_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=False)
         
         # Initialize weights
         self._init_weights()
