@@ -15,7 +15,7 @@ class Config:
     # Training
     negative_samples: int = 5
     epochs: int = 5
-    batch_size: int = 4096
+    batch_size: int = 16384
     learning_rate: float = 0.025
     lr_decay: bool = True
     

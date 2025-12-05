@@ -233,14 +233,24 @@ def create_result_plots(df: pd.DataFrame, output_dir: Path):
         "analogy_syntactic": "Syntactic Analogies (Acc)"
     }
     
-    # Order of conditions
-    condition_order = [
-        "Standard SGNS",
-        "Uniform Negatives",
-        "Debiased α=0.2",
-        "Debiased α=0.4",
-        "Debiased α=0.6"
-    ]
+    # Dynamically order conditions: Standard SGNS, Uniform Negatives, then Debiased (sorted by alpha)
+    all_conditions = df["condition"].unique()
+    standard_conditions = [c for c in all_conditions if "Standard SGNS" in c]
+    uniform_conditions = [c for c in all_conditions if "Uniform Negatives" in c]
+    debiased_conditions = [c for c in all_conditions if "Debiased" in c]
+    
+    # Sort debiased conditions by alpha value (extract from name)
+    def extract_alpha(condition_name):
+        if "α=" in condition_name:
+            try:
+                alpha_str = condition_name.split("α=")[1]
+                return float(alpha_str)
+            except:
+                return 0.0
+        return 0.0
+    
+    debiased_conditions.sort(key=extract_alpha)
+    condition_order = standard_conditions + uniform_conditions + debiased_conditions
     
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     axes = axes.flatten()
@@ -294,6 +304,13 @@ def main():
         default="results",
         help="Output directory for results"
     )
+    parser.add_argument(
+        "--alphas",
+        type=float,
+        nargs="+",
+        default=[0.2, 0.4, 0.6],
+        help="Alpha values for debiased experiments (default: 0.2 0.4 0.6)"
+    )
     args = parser.parse_args()
     
     output_dir = Path(args.output_dir)
@@ -311,22 +328,15 @@ def main():
             "negative_sampling": "uniform",
             "alpha": 0.0
         },
-        {
-            "name": "Debiased α=0.2",
-            "negative_sampling": "uniform",
-            "alpha": 0.2
-        },
-        {
-            "name": "Debiased α=0.4",
-            "negative_sampling": "uniform",
-            "alpha": 0.4
-        },
-        {
-            "name": "Debiased α=0.6",
-            "negative_sampling": "uniform",
-            "alpha": 0.6
-        },
     ]
+    
+    # Add debiased conditions for each alpha value
+    for alpha in args.alphas:
+        conditions.append({
+            "name": f"Debiased α={alpha}",
+            "negative_sampling": "uniform",
+            "alpha": alpha
+        })
     
     all_results = []
     

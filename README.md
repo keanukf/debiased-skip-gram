@@ -31,15 +31,26 @@ All datasets are cached in `~/.cache/debiased_skipgram/`.
 python -m debiased_skipgram.experiments.run_comparison --dim 100 --epochs 5 --seeds 42 123 456
 ```
 
+### Command-Line Options
+
+- `--dim`: Embedding dimension (default: 100)
+- `--epochs`: Number of training epochs (default: 5)
+- `--seeds`: Random seeds for multiple runs, space-separated (default: 42 123 456)
+- `--alphas`: Alpha values for debiased experiments, space-separated (default: 0.2 0.4 0.6)
+- `--output-dir`: Output directory for results (default: results)
+
+**Example with custom alpha values:**
+```bash
+python -m debiased_skipgram.experiments.run_comparison --dim 100 --epochs 5 --alphas 0.01 0.05 0.1 0.2 --output-dir results_small_alphas
+```
+
 ### Experimental Conditions
 
 1. **Standard SGNS**: Frequency-based negatives, binary targets (baseline)
 2. **Uniform Negatives Only**: Uniform negatives, binary targets
-3. **Debiased α=0.2**: Uniform negatives, soft targets
-4. **Debiased α=0.4**: Uniform negatives, soft targets
-5. **Debiased α=0.6**: Uniform negatives, soft targets
+3. **Debiased α={alpha}**: Uniform negatives, soft targets (one condition per alpha value specified)
 
-Each condition is run 3 times with different random seeds for statistical robustness.
+By default, debiased conditions are created for α=0.2, 0.4, and 0.6. You can customize these using the `--alphas` flag. Each condition is run multiple times with different random seeds (specified via `--seeds`) for statistical robustness.
 
 ## Results
 
