@@ -162,10 +162,6 @@ debiased_skipgram/
     └── run_comparison.py    # Main experiment script
 ```
 
-## Expected Runtime
-
-On M1 MacBook Pro 16GB: **20-40 minutes** for the full comparison (3 baseline conditions + 3 debiased conditions × 3 seeds = 15 total runs).
-
 ## Key Contributions
 
 This work demonstrates:
