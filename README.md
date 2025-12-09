@@ -20,23 +20,20 @@ In the context of word embeddings, the standard SGNS objective treats all negati
 
 Our debiased variant modifies the standard SGNS loss function in two key ways:
 
-**1. Uniform Negative Sampling**: Replace frequency-based sampling P_n(j) ∝ f(j)^0.75 with uniform sampling P_n(j) = 1/V to eliminate frequency bias.
+**1. Uniform Negative Sampling**: Replace frequency-based sampling $P_n(j) \propto f(j)^{0.75}$ with uniform sampling $P_n(j) = \frac{1}{V}$ to eliminate frequency bias.
 
 **2. Soft Target Labels**: Replace binary targets with information-theoretic soft targets:
 
-- **Positive target**: t_pos = 1 - α·k/(k+1)
-- **Negative target**: t_neg = α/(k+1)
+- **Positive target**: $t_{\text{pos}} = 1 - \alpha \cdot \frac{k}{k+1}$
+- **Negative target**: $t_{\text{neg}} = \frac{\alpha}{k+1}$
 
-where k is the number of negative samples and α ∈ [0,1] is a debiasing parameter controlling the strength of the soft target regularization.
+where $k$ is the number of negative samples and $\alpha \in [0,1]$ is a debiasing parameter controlling the strength of the soft target regularization.
 
 The loss function becomes:
 
-```text
-L = -[t_pos·log(σ(s_pos)) + (1-t_pos)·log(σ(-s_pos))] 
-    - Σ_i [t_neg·log(σ(s_neg_i)) + (1-t_neg)·log(σ(-s_neg_i))]
-```
+$$L = -\left[t_{\text{pos}} \cdot \log(\sigma(s_{\text{pos}})) + (1-t_{\text{pos}}) \cdot \log(\sigma(-s_{\text{pos}}))\right] - \sum_i \left[t_{\text{neg}} \cdot \log(\sigma(s_{\text{neg}_i})) + (1-t_{\text{neg}}) \cdot \log(\sigma(-s_{\text{neg}_i}))\right]$$
 
-As α → 0, the model recovers standard binary targets. As α increases, the soft targets provide a smoother learning signal that accounts for the information-theoretic structure of the contrastive space.
+As $\alpha \to 0$, the model recovers standard binary targets. As $\alpha$ increases, the soft targets provide a smoother learning signal that accounts for the information-theoretic structure of the contrastive space.
 
 ## Research Questions
 
@@ -54,9 +51,9 @@ This work addresses several fundamental questions:
 
 ### Baseline Conditions
 
-1. **Standard SGNS** (baseline): Frequency-based negative sampling P_n(j) ∝ f(j)^0.75 with binary targets (t_pos=1, t_neg=0). This replicates the standard word2vec setup.
+1. **Standard SGNS** (baseline): Frequency-based negative sampling $P_n(j) \propto f(j)^{0.75}$ with binary targets ($t_{\text{pos}}=1$, $t_{\text{neg}}=0$). This replicates the standard word2vec setup.
 
-2. **Uniform Negatives**: Uniform negative sampling P_n(j) = 1/V with binary targets. This isolates the effect of negative sampling distribution.
+2. **Uniform Negatives**: Uniform negative sampling $P_n(j) = \frac{1}{V}$ with binary targets. This isolates the effect of negative sampling distribution.
 
 3. **Debiased α={α}**: Uniform negative sampling with soft targets parameterized by α. Multiple α values are tested to explore the debiasing parameter space.
 
@@ -133,7 +130,7 @@ Results are saved in the `results/` directory:
 
 The summary includes:
 
-- Spearman correlation (ρ) on similarity datasets
+- Spearman correlation ($\rho$) on similarity datasets
 - Accuracy on semantic and syntactic analogies
 - Coverage statistics (vocabulary overlap with evaluation sets)
 - Training loss trajectories
